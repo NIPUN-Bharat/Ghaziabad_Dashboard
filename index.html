@@ -280,6 +280,50 @@
   .delta.down { color: #a83232; }
   .delta.flat { color: var(--ink-faint); }
 
+  /* SSP — Student Lookup */
+  .ssp-lookup-controls {
+    display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.9rem;
+  }
+  .ssp-lookup-controls select {
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--ink);
+    padding: 0.45rem 0.6rem; border: 1px solid var(--rule); border-radius: 4px;
+    background: white; min-width: 180px;
+  }
+  .ssp-lookup-controls button {
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+    color: white; background: var(--navy); border: none; border-radius: 4px;
+    padding: 0.5rem 1rem; cursor: pointer;
+  }
+  .ssp-lookup-controls button:hover { background: var(--navy-dark); }
+  .ssp-lookup-controls button:disabled { background: #b9b2a6 !important; cursor: not-allowed; }
+  .ssp-school-block { margin-bottom: 1.3rem; }
+  .ssp-school-name {
+    font-weight: 600; color: var(--ink); font-size: 0.92rem; margin-bottom: 0.35rem;
+  }
+  .ssp-school-count { font-weight: 400; color: var(--ink-faint); font-size: 0.78rem; }
+  .ssp-student-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .ssp-student-table th {
+    text-align: left; font-weight: 500; color: var(--ink-muted);
+    padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule);
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .ssp-student-table td {
+    padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); color: var(--ink);
+  }
+  .ssp-student-table td.cat-cell { display: flex; gap: 0.3rem; align-items: center; }
+  .ssp-student-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .ssp-student-table tr.zero-scorer-row { background: #fdeceb; }
+  .ssp-badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 600;
+    padding: 0.18rem 0.5rem; border-radius: 999px; color: white;
+    letter-spacing: 0.01em; margin-right: 0.3rem;
+    min-width: 96px; text-align: center; box-sizing: border-box;
+  }
+  .badge-green  { background: #2d7a4a; }
+  .badge-yellow { background: #d97e1f; }
+  .badge-red    { background: #a83232; }
+  .badge-dark   { background: #3a1f1f; }
+
   /* Skill matrix (block × sub-skill) */
   .skill-matrix {
     border-collapse: separate; border-spacing: 2px;
@@ -805,6 +849,7 @@
           <button class="kpi-nav-item" onclick="showKpi(this, 'kpi-community')">Community Engagement</button>
           <button class="kpi-nav-item" onclick="showKpi(this, 'kpi-meetings')">Review Meetings</button>
           <button class="kpi-nav-item" onclick="showKpi(this, 'kpi-nva')">NIPUN Vidyalaya Aaklan (NVA) Outcomes</button>
+          <button class="kpi-nav-item" onclick="showKpi(this, 'kpi-ssp')">School Support Program (SSP)</button>
         </nav>
 
         <div class="kpi-content">
@@ -1700,6 +1745,146 @@
             </div>
           </div>
 
+<div class="kpi-panel" id="kpi-ssp">
+            <h2 class="display">School Support Program (SSP)</h2>
+            <div class="panel-sub">विद्यालय सहयोग कार्यक्रम — दक्षता-आधारित मासिक आकलन</div>
+
+            <!-- Filters -->
+            <div class="panel-filters">
+              <div class="pf-item">
+                <label>Month:</label>
+                <div class="ms-dropdown" data-filter="ssp-month">
+                  <button type="button" class="ms-trigger" id="ssp-month-trigger" onclick="toggleMsDropdown('ssp-month-menu', this)">
+                    <span class="ms-trigger-label">All months</span>
+                    <span class="ms-trigger-caret">▾</span>
+                  </button>
+                  <div class="ms-menu" id="ssp-month-menu" role="listbox" aria-multiselectable="true">
+                    <label class="ms-option"><input type="checkbox" value="July" onchange="onSspFilterChange()"> July</label>
+                    <label class="ms-option"><input type="checkbox" value="August" onchange="onSspFilterChange()"> August</label>
+                    <label class="ms-option"><input type="checkbox" value="September" onchange="onSspFilterChange()"> September</label>
+                    <label class="ms-option"><input type="checkbox" value="October" onchange="onSspFilterChange()"> October</label>
+                    <label class="ms-option"><input type="checkbox" value="November" onchange="onSspFilterChange()"> November</label>
+                    <label class="ms-option"><input type="checkbox" value="December" onchange="onSspFilterChange()"> December</label>
+                    <label class="ms-option"><input type="checkbox" value="January" onchange="onSspFilterChange()"> January</label>
+                    <label class="ms-option"><input type="checkbox" value="February" onchange="onSspFilterChange()"> February</label>
+                    <label class="ms-option"><input type="checkbox" value="March" onchange="onSspFilterChange()"> March</label>
+                  </div>
+                </div>
+              </div>
+              <div class="pf-item" style="margin-left:auto; color:var(--ink-faint); font-size:0.78rem;">
+                Showing: <strong id="ssp-context" style="color:var(--ink);">All months</strong>
+              </div>
+            </div>
+
+            <!-- 1. Coverage snapshot -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Coverage snapshot</span>
+              </h3>
+              <div class="tile-grid" id="ssp-coverage"></div>
+            </div>
+
+            <!-- 2. Monthly trend -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Monthly trend</span>
+                <span class="sub-meta">% competencies achieved across the year, all blocks combined</span>
+              </h3>
+              <div class="line-chart-wrap">
+                <svg class="line-chart" id="ssp-trend" viewBox="0 0 700 240" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+            </div>
+
+            <!-- 3. Block performance -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Block performance</span>
+                <span class="sub-meta">delta vs district avg · for selected month(s)</span>
+              </h3>
+              <table class="kpi-table" id="ssp-block-table">
+                <thead>
+                  <tr>
+                    <th>Block</th>
+                    <th class="num">Students Assessed</th>
+                    <th class="num">Students Achieved</th>
+                    <th class="num">% Achieved</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <!-- 4. Block × Competency heatmap -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Block × Competency (%)</span>
+                <span class="sub-meta" id="ssp-heatmap-meta">select 1–3 months above to view</span>
+              </h3>
+              <div style="overflow-x:auto;">
+                <table class="kpi-table skill-matrix" id="ssp-heatmap">
+                  <thead><tr id="ssp-heatmap-thead"></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="tier-legend">
+                <span class="tg"><span class="tg-sw" style="background:#c62828;"></span>≤ 25%</span>
+                <span class="tg"><span class="tg-sw" style="background:#ef6c5a;"></span>26 – 50%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f5a623;"></span>51 – 75%</span>
+                <span class="tg"><span class="tg-sw" style="background:#2d7a4a;"></span>76 – 100%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f0ece2;"></span>No data</span>
+              </div>
+            </div>
+
+            <!-- 5. Per-ARP performance -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Per-ARP performance</span>
+                <span class="sub-meta">ranked by % achieved · delta vs district avg</span>
+              </h3>
+              <table class="kpi-table" id="ssp-arp-table">
+                <thead>
+                  <tr>
+                    <th style="width:32px;">#</th>
+                    <th>ARP Name</th>
+                    <th>Block</th>
+                    <th class="num">% Achieved</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <!-- 6. Student Lookup — by ARP and month -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Student Lookup — My Adopted Schools</span>
+                <span class="sub-meta">select your name and a month to see every assessed student, by school</span>
+              </h3>
+              <div class="ssp-lookup-controls">
+                <select id="ssp-arp-select">
+                  <option value="">Select ARP…</option>
+                </select>
+                <select id="ssp-lookup-month">
+                  <option value="">Select Month…</option>
+                </select>
+                <button type="button" onclick="loadSspStudents()">Show my students</button>
+                <button type="button" id="ssp-export-excel" onclick="exportSspStudentsExcel()" disabled
+                  style="background:#2d7a4a;">Download Excel</button>
+                <button type="button" id="ssp-export-pdf" onclick="exportSspStudentsPdf()" disabled
+                  style="background:#7a2d2d;">Download PDF</button>
+              </div>
+              <div class="tier-legend" style="margin-bottom:0.9rem;">
+                <span class="tg"><span class="tg-sw" style="background:#2d7a4a;"></span>Saksham (≥ 80%)</span>
+                <span class="tg"><span class="tg-sw" style="background:#d97e1f;"></span>Pragatisheel (51–79%)</span>
+                <span class="tg"><span class="tg-sw" style="background:#a83232;"></span>Sangharsheel (≤ 50%)</span>
+                <span class="tg"><span class="tg-sw" style="background:#3a1f1f;"></span>Zero Scorer (0 correct)</span>
+              </div>
+              <div id="ssp-student-results">
+                <div class="kpi-placeholder">Select an ARP and a month above.</div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1749,6 +1934,7 @@
           <button class="kpi-nav-item" onclick="showKpi(this, 'bkpi-slo')">Student Learning Outcomes</button>
           <button class="kpi-nav-item" onclick="showKpi(this, 'bkpi-community')">Community Engagement</button>
           <button class="kpi-nav-item" onclick="showKpi(this, 'bkpi-nva')">NIPUN Vidyalaya Aaklan (NVA) Outcomes</button>
+          <button class="kpi-nav-item" onclick="showKpi(this, 'bkpi-ssp')">School Support Program (SSP)</button>
         </nav>
 
         <div class="kpi-content">
@@ -2254,12 +2440,112 @@
             </div>
           </div>
 
+          <div class="kpi-panel" id="bkpi-ssp">
+            <h2 class="display">School Support Program (SSP)</h2>
+            <div class="panel-sub">विद्यालय सहयोग कार्यक्रम — दक्षता-आधारित मासिक आकलन</div>
+
+            <div class="panel-filters">
+              <div class="pf-item">
+                <label>Month:</label>
+                <div class="ms-dropdown" data-filter="bssp-month">
+                  <button type="button" class="ms-trigger" id="bssp-month-trigger" onclick="toggleMsDropdown('bssp-month-menu', this)">
+                    <span class="ms-trigger-label">All months</span>
+                    <span class="ms-trigger-caret">▾</span>
+                  </button>
+                  <div class="ms-menu" id="bssp-month-menu" role="listbox" aria-multiselectable="true"></div>
+                </div>
+              </div>
+              <div class="pf-item" style="margin-left:auto; color:var(--ink-faint); font-size:0.78rem;">
+                Showing: <strong id="bssp-context" style="color:var(--ink);">All months</strong>
+              </div>
+            </div>
+
+            <!-- 1. Coverage snapshot -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h"><span>Coverage snapshot</span></h3>
+              <div class="tile-grid" id="bssp-coverage"></div>
+            </div>
+
+            <!-- 2. Monthly trend -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Monthly trend</span>
+                <span class="sub-meta">% competencies achieved across the year, this block</span>
+              </h3>
+              <div class="line-chart-wrap">
+                <svg class="line-chart" id="bssp-trend" viewBox="0 0 700 240" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+            </div>
+
+            <!-- 3. Competency breakdown -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Competency breakdown</span>
+                <span class="sub-meta">select 1–3 months above to view</span>
+              </h3>
+              <div id="bssp-heatmap"></div>
+            </div>
+
+            <!-- 4. Per-ARP performance (within this block) -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Per-ARP performance</span>
+                <span class="sub-meta">ranked by % achieved · this block only</span>
+              </h3>
+              <table class="kpi-table" id="bssp-arp-table">
+                <thead>
+                  <tr>
+                    <th style="width:32px;">#</th>
+                    <th>ARP Name</th>
+                    <th class="num">% Achieved</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <!-- 5. Student Lookup — scoped to this block's ARPs -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Student Lookup — My Adopted Schools</span>
+                <span class="sub-meta">select your name and a month to see every assessed student, by school</span>
+              </h3>
+              <div class="ssp-lookup-controls">
+                <select id="bssp-arp-select">
+                  <option value="">Select ARP…</option>
+                </select>
+                <select id="bssp-lookup-month">
+                  <option value="">Select Month…</option>
+                </select>
+                <button type="button" onclick="loadBsspStudents()">Show my students</button>
+                <button type="button" id="bssp-export-excel" onclick="exportBsspStudentsExcel()" disabled
+                  style="background:#2d7a4a;">Download Excel</button>
+                <button type="button" id="bssp-export-pdf" onclick="exportBsspStudentsPdf()" disabled
+                  style="background:#7a2d2d;">Download PDF</button>
+              </div>
+              <div class="tier-legend" style="margin-bottom:0.9rem;">
+                <span class="tg"><span class="tg-sw" style="background:#2d7a4a;"></span>Saksham (≥ 80%)</span>
+                <span class="tg"><span class="tg-sw" style="background:#d97e1f;"></span>Pragatisheel (51–79%)</span>
+                <span class="tg"><span class="tg-sw" style="background:#a83232;"></span>Sangharsheel (≤ 50%)</span>
+                <span class="tg"><span class="tg-sw" style="background:#3a1f1f;"></span>Zero Scorer (0 correct)</span>
+              </div>
+              <div id="bssp-student-results">
+                <div class="kpi-placeholder">Select an ARP and a month above.</div>
+              </div>
+            </div>
+          </div>
+
         </div><!-- /kpi-content -->
       </div><!-- /kpi-section -->
     </div><!-- /section -->
 
   </div><!-- /container -->
 </div><!-- /page-block -->
+
+<!-- Excel & PDF export libraries for the SSP Student Lookup download buttons -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
 // ============================================================
@@ -2285,6 +2571,11 @@ const COM_URL  = 'https://script.google.com/macros/s/AKfycbxSutt-akDoEQeu4O8y4Fu
 
 // KPI 6 — NIPUN Vidyalaya Aaklan (NVA) Outcomes API
 const NVA_URL  = 'https://script.google.com/macros/s/AKfycbxeo_nxHpHnUlrjbQViFZenQLmdpoOl6z1O6c_rYVIw3VCpV2NhNsIVKh2240f9ZfXPmQ/exec';
+
+// KPI 7 — School Support Program (SSP) API
+// PASTE_YOUR_SSP_WEB_APP_URL_HERE — deploy SSP_Dashboard_API.gs as a Web App
+// bound to your "District SSP Master" spreadsheet, then paste the /exec URL below.
+const SSP_URL  = 'https://script.google.com/macros/s/AKfycbzHn3k7P6ELbKdRpIcx_zIEKJtFa0yjCQ8WgYOn5e3ZFSYuT_pKXl0u6myDEalGRWObvg/exec';
 
 // Indian-format number helper.
 const fmtIN = new Intl.NumberFormat('en-IN');
@@ -3231,6 +3522,689 @@ function showView(view) {
   event.target.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ============================================================
+// SSP — School Support Program
+// ============================================================
+const SSP_MONTHS = ['July','August','September','October','November','December','January','February','March'];
+const SSP_MONTH_SHORT = {
+  July:'Jul', August:'Aug', September:'Sep', October:'Oct', November:'Nov',
+  December:'Dec', January:'Jan', February:'Feb', March:'Mar'
+};
+
+function getSspSelected() {
+  return Array.from(document.querySelectorAll('#ssp-month-menu input[type="checkbox"]:checked'))
+    .map(cb => cb.value);
+}
+
+function onSspFilterChange() {
+  const months = getSspSelected();
+  document.querySelector('#ssp-month-trigger .ms-trigger-label').textContent =
+    (months.length === 0 || months.length === SSP_MONTHS.length) ? 'All months' :
+    (months.length <= 3 ? months.join(', ') : `${months.length} months`);
+  renderSspFromFilters();
+}
+
+function renderSspFromFilters() {
+  const selected = getSspSelected();
+  const effMonths = selected.length === 0 ? SSP_MONTHS.slice() : selected;
+
+  document.getElementById('ssp-context').textContent =
+    effMonths.length === SSP_MONTHS.length ? 'All months' : effMonths.join(', ');
+
+  document.getElementById('ssp-coverage').innerHTML = '<div class="kpi-placeholder">Loading…</div>';
+
+  if (!SSP_URL || SSP_URL.startsWith('PASTE_')) {
+    document.getElementById('ssp-coverage').innerHTML =
+      '<div class="kpi-placeholder">SSP_URL not configured. Deploy SSP_Dashboard_API.gs and paste the Web App URL.</div>';
+    return;
+  }
+
+  const qs = `?month=${encodeURIComponent(effMonths.join(','))}`;
+  fetch(SSP_URL + qs)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if (data && data.error) {
+        document.getElementById('ssp-coverage').innerHTML =
+          `<div class="kpi-placeholder">API error: ${escapeHtml(data.error)}</div>`;
+        console.error('SSP API error:', data.error);
+        return;
+      }
+      renderSsp(data);
+    })
+    .catch(err => {
+      document.getElementById('ssp-coverage').innerHTML =
+        '<div class="kpi-placeholder">Could not load SSP data. Check console.</div>';
+      console.error('SSP fetch failed:', err);
+    });
+}
+
+function renderSsp(data) {
+  renderSspCoverage(data.coverage);
+  renderSspTrend(data.monthlyTrend);
+  renderSspBlockTable(data.byBlock, data.coverage.overallPct);
+  renderSspHeatmap(data.heatmap);
+  renderSspArpTable(data.byArp);
+  populateSspArpSelect(data.arpList || data.byArp);
+}
+
+// ---- Student Lookup (Saksham / Pragatisheel / Sangharsheel / Zero Scorer) ----
+
+function populateSspArpSelect(arpList) {
+  const sel = document.getElementById('ssp-arp-select');
+  if (!sel) return;
+  const current = sel.value;
+  const names = [...new Set(arpList.map(a => a.arp))].sort();
+  sel.innerHTML = '<option value="">Select ARP…</option>' +
+    names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  if (names.includes(current)) sel.value = current;
+}
+
+function populateSspMonthSelect() {
+  const sel = document.getElementById('ssp-lookup-month');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select Month…</option>' +
+    SSP_MONTHS.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+function loadSspStudents() {
+  const arp = document.getElementById('ssp-arp-select').value;
+  const month = document.getElementById('ssp-lookup-month').value;
+  const resultsEl = document.getElementById('ssp-student-results');
+
+  if (!arp || !month) {
+    resultsEl.innerHTML = '<div class="kpi-placeholder">Select an ARP and a month.</div>';
+    return;
+  }
+  if (!SSP_URL || SSP_URL.startsWith('PASTE_')) {
+    resultsEl.innerHTML = '<div class="kpi-placeholder">SSP_URL not configured.</div>';
+    return;
+  }
+
+  resultsEl.innerHTML = '<div class="kpi-placeholder">Loading…</div>';
+
+  const qs = `?arp=${encodeURIComponent(arp)}&month=${encodeURIComponent(month)}`;
+  fetch(SSP_URL + qs)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if (data && data.error) {
+        resultsEl.innerHTML = `<div class="kpi-placeholder">API error: ${escapeHtml(data.error)}</div>`;
+        return;
+      }
+      renderSspStudents(data.students || []);
+    })
+    .catch(err => {
+      resultsEl.innerHTML = '<div class="kpi-placeholder">Could not load student data. Check console.</div>';
+      console.error('SSP student fetch failed:', err);
+    });
+}
+
+function sspCategoryBadge(category) {
+  if (category === 'Saksham') return `<span class="ssp-badge badge-green">Saksham</span>`;
+  if (category === 'Pragatisheel') return `<span class="ssp-badge badge-yellow">Pragatisheel</span>`;
+  if (category === 'Sangharsheel') return `<span class="ssp-badge badge-red">Sangharsheel</span>`;
+  return '';
+}
+
+function renderSspStudents(students) {
+  const resultsEl = document.getElementById('ssp-student-results');
+  lastSspStudents = students; // kept for Excel/PDF export
+
+  if (!students.length) {
+    resultsEl.innerHTML = '<div class="kpi-placeholder">No assessed students found for this ARP/month.</div>';
+    toggleSspExportButtons(false);
+    return;
+  }
+  toggleSspExportButtons(true);
+
+  const bySchool = {};
+  students.forEach(s => {
+    if (!bySchool[s.school]) bySchool[s.school] = [];
+    bySchool[s.school].push(s);
+  });
+
+  const html = Object.keys(bySchool).sort().map(school => {
+    const rows = bySchool[school].slice().sort((a, b) => a.pct - b.pct);
+    return `
+      <div class="ssp-school-block">
+        <div class="ssp-school-name">${escapeHtml(school)}
+          <span class="ssp-school-count">(${rows.length} students assessed)</span>
+        </div>
+        <table class="ssp-student-table">
+          <thead>
+            <tr><th>Student</th><th class="num">Achieved</th><th class="num">%</th><th>Category</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr class="${r.zeroScorer ? 'zero-scorer-row' : ''}">
+                <td>${escapeHtml(r.studentName)}</td>
+                <td class="num">${r.achieved}/${r.assessed}</td>
+                <td class="num">${r.pct}%</td>
+                <td class="cat-cell">${sspCategoryBadge(r.category)}${r.zeroScorer ? '<span class="ssp-badge badge-dark">Zero Scorer</span>' : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }).join('');
+
+  resultsEl.innerHTML = html;
+}
+
+function toggleSspExportButtons(enabled) {
+  const excelBtn = document.getElementById('ssp-export-excel');
+  const pdfBtn = document.getElementById('ssp-export-pdf');
+  if (excelBtn) excelBtn.disabled = !enabled;
+  if (pdfBtn) pdfBtn.disabled = !enabled;
+}
+
+function sspExportFilename(ext) {
+  const arp = document.getElementById('ssp-arp-select').value || 'ARP';
+  const month = document.getElementById('ssp-lookup-month').value || 'Month';
+  const safe = s => s.replace(/[^a-z0-9]+/gi, '_');
+  return `SSP_${safe(arp)}_${safe(month)}.${ext}`;
+}
+
+// Same rows, school groupings, and column order as what's on screen.
+function sspExportRows() {
+  const bySchool = {};
+  lastSspStudents.forEach(s => {
+    if (!bySchool[s.school]) bySchool[s.school] = [];
+    bySchool[s.school].push(s);
+  });
+  const out = [];
+  Object.keys(bySchool).sort().forEach(school => {
+    const rows = bySchool[school].slice().sort((a, b) => a.pct - b.pct);
+    rows.forEach(r => {
+      out.push({
+        School: school,
+        Student: r.studentName,
+        Achieved: `${r.achieved}/${r.assessed}`,
+        'Percent': `${r.pct}%`,
+        Category: r.category || '',
+        'Zero Scorer': r.zeroScorer ? 'YES' : ''
+      });
+    });
+  });
+  return out;
+}
+
+function exportSspStudentsExcel() {
+  if (!lastSspStudents.length || typeof XLSX === 'undefined') return;
+  const rows = sspExportRows();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Student Lookup');
+  XLSX.writeFile(wb, sspExportFilename('xlsx'));
+}
+
+function exportSspStudentsPdf() {
+  if (!lastSspStudents.length || typeof window.jspdf === 'undefined') return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape' });
+  const arp = document.getElementById('ssp-arp-select').value;
+  const month = document.getElementById('ssp-lookup-month').value;
+
+  doc.setFontSize(14);
+  doc.text(`SSP Student Lookup — ${arp} — ${month}`, 14, 15);
+
+  const rows = sspExportRows();
+  doc.autoTable({
+    startY: 22,
+    head: [['School', 'Student', 'Achieved', 'Percent', 'Category', 'Zero Scorer']],
+    body: rows.map(r => [r.School, r.Student, r.Achieved, r.Percent, r.Category, r['Zero Scorer']]),
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [26, 43, 74] }
+  });
+
+  doc.save(sspExportFilename('pdf'));
+}
+
+let lastSspStudents = [];
+populateSspMonthSelect();
+
+function renderSspCoverage(c) {
+  document.getElementById('ssp-coverage').innerHTML = `
+    <div class="tile">
+      <div class="tile-label">Total ARPs</div>
+      <div class="tile-value">${fmtIN.format(c.totalArps)}</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Competency assessments</div>
+      <div class="tile-value">${fmtIN.format(c.assessed)}</div>
+      <div class="tile-sub">student × competency checks, selected month(s)</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Achieved</div>
+      <div class="tile-value">${fmtIN.format(c.achieved)}</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">% Achieved</div>
+      <div class="tile-value">${c.overallPct}%</div>
+      <div class="tile-sub">of assessed</div>
+    </div>
+  `;
+}
+
+function renderSspTrend(trend) {
+  const svg = document.getElementById('ssp-trend');
+  const W = 700, H = 240;
+  const ML = 64, MR = 24, MT = 16, MB = 44;
+  const PADX = 16;
+  const PW = W - ML - MR;
+  const PH = H - MT - MB;
+  const USABLE = PW - PADX * 2;
+
+  const n = trend.length;
+  const xStep = n > 1 ? USABLE / (n - 1) : USABLE;
+  const xPos = i => ML + PADX + i * xStep;
+  const yPos = v => MT + PH - (v / 100) * PH;
+
+  const yLevels = [0, 25, 50, 75, 100];
+  let parts = [];
+
+  yLevels.forEach(v => {
+    const y = yPos(v);
+    parts.push(`<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="#e6e0d4" stroke-dasharray="2 3"/>`);
+    parts.push(`<text x="${ML - 10}" y="${y + 3}" text-anchor="end" font-size="10" fill="#8a8a8a" font-family="DM Sans, sans-serif">${v}%</text>`);
+  });
+
+  trend.forEach((row, i) => {
+    const x = xPos(i);
+    const opacity = row.included ? 1 : 0.5;
+    const label = SSP_MONTH_SHORT[row.month] || row.month;
+    parts.push(`<text x="${x}" y="${H - MB + 16}" text-anchor="middle" font-size="10" fill="#5a5a5a" font-family="DM Sans, sans-serif" opacity="${opacity}">${label}</text>`);
+    if (row.included) {
+      parts.push(`<line x1="${x}" y1="${MT}" x2="${x}" y2="${MT + PH}" stroke="#1a3a5c" stroke-width="0.5" opacity="0.05"/>`);
+    }
+  });
+
+  const hasData = trend.map(r => r.assessed > 0);
+  const segments = [];
+  let currentSeg = [];
+  trend.forEach((row, i) => {
+    if (hasData[i]) {
+      currentSeg.push(i);
+    } else if (currentSeg.length > 0) {
+      segments.push(currentSeg);
+      currentSeg = [];
+    }
+  });
+  if (currentSeg.length > 0) segments.push(currentSeg);
+
+  segments.forEach(seg => {
+    if (seg.length === 1) return;
+    const path = seg.map((idx, k) => `${k === 0 ? 'M' : 'L'} ${xPos(idx)} ${yPos(trend[idx].pct)}`).join(' ');
+    parts.push(`<path d="${path}" fill="none" stroke="#1a3a5c" stroke-width="2"/>`);
+  });
+
+  trend.forEach((row, i) => {
+    if (!hasData[i]) return;
+    const x = xPos(i);
+    const y = yPos(row.pct);
+    const fillColor = row.included ? '#d97e1f' : '#c9bfa9';
+    parts.push(`<circle cx="${x}" cy="${y}" r="4" fill="${fillColor}" stroke="white" stroke-width="2"/>`);
+    parts.push(`<text x="${x}" y="${y - 10}" text-anchor="middle" font-size="10" fill="#0f2540" font-weight="500" font-family="DM Sans, sans-serif">${row.pct}%</text>`);
+  });
+
+  if (segments.length === 0) {
+    parts.push(`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="#8a8a8a" font-family="DM Sans, sans-serif">No data available yet</text>`);
+  }
+
+  svg.innerHTML = parts.join('');
+}
+
+function renderSspBlockTable(byBlock, districtPct) {
+  const tbody = document.querySelector('#ssp-block-table tbody');
+  const deltaSpan = (val) => {
+    const d = Math.round((val - districtPct) * 10) / 10;
+    if (d === 0) return ' <span class="delta flat">±0</span>';
+    return ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>`;
+  };
+  tbody.innerHTML = byBlock.map(b => `
+    <tr>
+      <td>${escapeHtml(b.block)}</td>
+      <td class="num">${fmtIN.format(b.assessed)}</td>
+      <td class="num">${fmtIN.format(b.achieved)}</td>
+      <td class="num">${b.pct}%${deltaSpan(b.pct)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderSspHeatmap(heatmap) {
+  const thead = document.getElementById('ssp-heatmap-thead');
+  const tbody = document.querySelector('#ssp-heatmap tbody');
+  const meta = document.getElementById('ssp-heatmap-meta');
+
+  if (!heatmap || heatmap.tooManyMonths) {
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+    meta.textContent = 'select 1–3 months above to view the competency breakdown';
+    return;
+  }
+  meta.textContent = 'blocks × competencies for the selected month(s)';
+
+  thead.innerHTML = '<th>Block</th>' + heatmap.competencies.map(c => `<th>${escapeHtml(c)}</th>`).join('');
+  tbody.innerHTML = heatmap.blocks.map((block, bi) => `
+    <tr>
+      <td>${escapeHtml(block)}</td>
+      ${heatmap.values[bi].map(v => {
+        const pct = v == null ? null : v;
+        const tier = tierFor(pct);
+        return `<td class="${tier}">${pct == null ? '—' : pct + '%'}</td>`;
+      }).join('')}
+    </tr>
+  `).join('');
+}
+
+function renderSspArpTable(byArp) {
+  const tbody = document.querySelector('#ssp-arp-table tbody');
+  const validPct = byArp.filter(a => a.pct != null).map(a => a.pct);
+  const districtAvg = validPct.length ? Math.round((validPct.reduce((s, v) => s + v, 0) / validPct.length) * 10) / 10 : 0;
+  const deltaSpan = (val) => {
+    if (val == null) return '';
+    const d = Math.round((val - districtAvg) * 10) / 10;
+    if (d === 0) return ' <span class="delta flat">±0</span>';
+    return ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>`;
+  };
+  const sorted = byArp.slice().sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
+  tbody.innerHTML = sorted.map((a, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(a.arp)}</td>
+      <td>${escapeHtml(a.block)}</td>
+      <td class="num">${a.pct == null ? '—' : a.pct + '%'}${deltaSpan(a.pct)}</td>
+    </tr>
+  `).join('');
+}
+
+
+// ============================================================
+// BLOCK KPI 7 — SSP (School Support Program)
+// ============================================================
+function onBsspFilterChange() {
+  const months = getBMsSelected('bssp-month-menu');
+  const effM = months.length === 0 ? SSP_MONTHS.slice() : months;
+  const trigM = document.querySelector('#bssp-month-trigger .ms-trigger-label');
+  const mLabel = effM.length === SSP_MONTHS.length ? 'All months'
+    : effM.length <= 3 ? effM.map(m => SSP_MONTH_SHORT[m] || m).join(', ')
+    : effM.length + ' months';
+  if (trigM) trigM.textContent = mLabel;
+  const ctx = document.getElementById('bssp-context');
+  if (ctx) ctx.textContent = mLabel;
+  renderBsspFromFilters();
+}
+
+function renderBsspFromFilters() {
+  const block = getSelectedBlock();
+  const months = getBMsSelected('bssp-month-menu');
+  const effM = months.length === 0 ? SSP_MONTHS.slice() : months;
+
+  bPlaceholder('bssp-coverage');
+  const tbody = document.querySelector('#bssp-arp-table tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="3" class="kpi-placeholder">Loading…</td></tr>';
+
+  if (!SSP_URL || SSP_URL.startsWith('PASTE_')) {
+    bPlaceholder('bssp-coverage', 'SSP_URL not configured.');
+    return;
+  }
+
+  const qs = '?month=' + encodeURIComponent(effM.join(','))
+           + '&block=' + encodeURIComponent(block);
+
+  fetch(SSP_URL + qs)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if (data && data.error) {
+        bPlaceholder('bssp-coverage', 'API error: ' + escapeHtml(data.error));
+        return;
+      }
+      buildMonthDropdown('bssp-month-menu', 'onBsspFilterChange', SSP_MONTHS, effM);
+      renderBsspCoverage(data.coverage);
+      renderBsspTrend(data.monthlyTrend);
+      renderBsspHeatmap(data.heatmap);
+      renderBsspArpTable(data.byArp);
+      populateBsspArpSelect(data.arpList || data.byArp);
+    })
+    .catch(err => {
+      bPlaceholder('bssp-coverage', 'Could not load data. Check console.');
+      console.error('Block SSP fetch failed:', err);
+    });
+}
+
+function renderBsspCoverage(c) {
+  if (!c) return;
+  bSetHtml('bssp-coverage', `
+    <div class="tile"><div class="tile-label">Total ARPs</div><div class="tile-value">${fmtIN.format(c.totalArps || 0)}</div></div>
+    <div class="tile"><div class="tile-label">Competency assessments</div><div class="tile-value">${fmtIN.format(c.assessed || 0)}</div><div class="tile-sub">student × competency checks, selected month(s)</div></div>
+    <div class="tile"><div class="tile-label">Achieved</div><div class="tile-value">${fmtIN.format(c.achieved || 0)}</div></div>
+    <div class="tile"><div class="tile-label">% Achieved</div><div class="tile-value">${c.overallPct || 0}%</div><div class="tile-sub">of assessed</div></div>
+  `);
+}
+
+// Reuse the same SVG line-chart layout as the district SSP trend, pointed
+// at the block SVG element.
+function renderBsspTrend(trend) {
+  if (!trend) return;
+  const blockSvg = document.getElementById('bssp-trend');
+  if (!blockSvg) return;
+  const districtSvg = document.getElementById('ssp-trend');
+  const originalId = districtSvg ? districtSvg.id : null;
+  if (districtSvg) districtSvg.removeAttribute('id');
+  blockSvg.id = 'ssp-trend';
+  renderSspTrend(trend);
+  blockSvg.removeAttribute('id');
+  blockSvg.id = 'bssp-trend';
+  if (districtSvg && originalId) districtSvg.id = originalId;
+}
+
+function renderBsspHeatmap(heatmap) {
+  const wrap = document.getElementById('bssp-heatmap');
+  if (!wrap) return;
+  const districtWrap = document.getElementById('ssp-heatmap');
+  const originalId = districtWrap ? districtWrap.id : null;
+  if (districtWrap) districtWrap.removeAttribute('id');
+  wrap.id = 'ssp-heatmap';
+  renderSspHeatmap(heatmap);
+  wrap.removeAttribute('id');
+  wrap.id = 'bssp-heatmap';
+  if (districtWrap && originalId) districtWrap.id = originalId;
+}
+
+function renderBsspArpTable(byArp) {
+  const tbody = document.querySelector('#bssp-arp-table tbody');
+  if (!tbody) return;
+  if (!byArp || !byArp.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="kpi-placeholder">No ARPs with data in this block yet.</td></tr>';
+    return;
+  }
+  const validPct = byArp.filter(a => a.pct != null).map(a => a.pct);
+  const blockAvg = validPct.length ? Math.round((validPct.reduce((s, v) => s + v, 0) / validPct.length) * 10) / 10 : 0;
+  const deltaSpan = (val) => {
+    if (val == null) return '';
+    const d = Math.round((val - blockAvg) * 10) / 10;
+    if (d === 0) return ' <span class="delta flat">±0</span>';
+    return ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>`;
+  };
+  const sorted = byArp.slice().sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
+  tbody.innerHTML = sorted.map((a, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(a.arp)}</td>
+      <td class="num">${a.pct == null ? '—' : a.pct + '%'}${deltaSpan(a.pct)}</td>
+    </tr>
+  `).join('');
+}
+
+// ---- Block-scoped Student Lookup ----
+
+function populateBsspArpSelect(arpList) {
+  const sel = document.getElementById('bssp-arp-select');
+  if (!sel) return;
+  const current = sel.value;
+  const names = [...new Set((arpList || []).map(a => a.arp))].sort();
+  sel.innerHTML = '<option value="">Select ARP…</option>' +
+    names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  if (names.includes(current)) sel.value = current;
+}
+
+function populateBsspMonthSelect() {
+  const sel = document.getElementById('bssp-lookup-month');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select Month…</option>' +
+    SSP_MONTHS.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+let lastBsspStudents = [];
+
+function loadBsspStudents() {
+  const arp = document.getElementById('bssp-arp-select').value;
+  const month = document.getElementById('bssp-lookup-month').value;
+  const resultsEl = document.getElementById('bssp-student-results');
+
+  if (!arp || !month) {
+    resultsEl.innerHTML = '<div class="kpi-placeholder">Select an ARP and a month.</div>';
+    return;
+  }
+  if (!SSP_URL || SSP_URL.startsWith('PASTE_')) {
+    resultsEl.innerHTML = '<div class="kpi-placeholder">SSP_URL not configured.</div>';
+    return;
+  }
+
+  resultsEl.innerHTML = '<div class="kpi-placeholder">Loading…</div>';
+
+  const qs = `?arp=${encodeURIComponent(arp)}&month=${encodeURIComponent(month)}`;
+  fetch(SSP_URL + qs)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if (data && data.error) {
+        resultsEl.innerHTML = `<div class="kpi-placeholder">API error: ${escapeHtml(data.error)}</div>`;
+        return;
+      }
+      renderBsspStudents(data.students || []);
+    })
+    .catch(err => {
+      resultsEl.innerHTML = '<div class="kpi-placeholder">Could not load student data. Check console.</div>';
+      console.error('Block SSP student fetch failed:', err);
+    });
+}
+
+function toggleBsspExportButtons(enabled) {
+  const excelBtn = document.getElementById('bssp-export-excel');
+  const pdfBtn = document.getElementById('bssp-export-pdf');
+  if (excelBtn) excelBtn.disabled = !enabled;
+  if (pdfBtn) pdfBtn.disabled = !enabled;
+}
+
+function renderBsspStudents(students) {
+  const resultsEl = document.getElementById('bssp-student-results');
+  lastBsspStudents = students;
+
+  if (!students.length) {
+    resultsEl.innerHTML = '<div class="kpi-placeholder">No assessed students found for this ARP/month.</div>';
+    toggleBsspExportButtons(false);
+    return;
+  }
+  toggleBsspExportButtons(true);
+
+  const bySchool = {};
+  students.forEach(s => {
+    if (!bySchool[s.school]) bySchool[s.school] = [];
+    bySchool[s.school].push(s);
+  });
+
+  const html = Object.keys(bySchool).sort().map(school => {
+    const rows = bySchool[school].slice().sort((a, b) => a.pct - b.pct);
+    return `
+      <div class="ssp-school-block">
+        <div class="ssp-school-name">${escapeHtml(school)}
+          <span class="ssp-school-count">(${rows.length} students assessed)</span>
+        </div>
+        <table class="ssp-student-table">
+          <thead>
+            <tr><th>Student</th><th class="num">Achieved</th><th class="num">%</th><th>Category</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr class="${r.zeroScorer ? 'zero-scorer-row' : ''}">
+                <td>${escapeHtml(r.studentName)}</td>
+                <td class="num">${r.achieved}/${r.assessed}</td>
+                <td class="num">${r.pct}%</td>
+                <td class="cat-cell">${sspCategoryBadge(r.category)}${r.zeroScorer ? '<span class="ssp-badge badge-dark">Zero Scorer</span>' : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }).join('');
+
+  resultsEl.innerHTML = html;
+}
+
+function bsspExportFilename(ext) {
+  const arp = document.getElementById('bssp-arp-select').value || 'ARP';
+  const month = document.getElementById('bssp-lookup-month').value || 'Month';
+  const safe = s => s.replace(/[^a-z0-9]+/gi, '_');
+  return `SSP_${safe(arp)}_${safe(month)}.${ext}`;
+}
+
+function bsspExportRows() {
+  const bySchool = {};
+  lastBsspStudents.forEach(s => {
+    if (!bySchool[s.school]) bySchool[s.school] = [];
+    bySchool[s.school].push(s);
+  });
+  const out = [];
+  Object.keys(bySchool).sort().forEach(school => {
+    const rows = bySchool[school].slice().sort((a, b) => a.pct - b.pct);
+    rows.forEach(r => {
+      out.push({
+        School: school,
+        Student: r.studentName,
+        Achieved: `${r.achieved}/${r.assessed}`,
+        'Percent': `${r.pct}%`,
+        Category: r.category || '',
+        'Zero Scorer': r.zeroScorer ? 'YES' : ''
+      });
+    });
+  });
+  return out;
+}
+
+function exportBsspStudentsExcel() {
+  if (!lastBsspStudents.length || typeof XLSX === 'undefined') return;
+  const rows = bsspExportRows();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Student Lookup');
+  XLSX.writeFile(wb, bsspExportFilename('xlsx'));
+}
+
+function exportBsspStudentsPdf() {
+  if (!lastBsspStudents.length || typeof window.jspdf === 'undefined') return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape' });
+  const arp = document.getElementById('bssp-arp-select').value;
+  const month = document.getElementById('bssp-lookup-month').value;
+  const block = getSelectedBlock();
+
+  doc.setFontSize(14);
+  doc.text(`SSP Student Lookup — ${arp} — ${month} — ${block}`, 14, 15);
+
+  const rows = bsspExportRows();
+  doc.autoTable({
+    startY: 22,
+    head: [['School', 'Student', 'Achieved', 'Percent', 'Category', 'Zero Scorer']],
+    body: rows.map(r => [r.School, r.Student, r.Achieved, r.Percent, r.Category, r['Zero Scorer']]),
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [26, 43, 74] }
+  });
+
+  doc.save(bsspExportFilename('pdf'));
+}
+
+populateBsspMonthSelect();
+
 function showKpi(btn, panelId) {
   const section = btn.closest('.kpi-section');
   section.querySelectorAll('.kpi-nav-item').forEach(b => b.classList.remove('active'));
@@ -5004,6 +5978,7 @@ window.addEventListener('DOMContentLoaded', () => {
   renderMeetingsFromFilters();
   renderCommunityFromFilters();
   renderNvaFromFilters();
+  renderSspFromFilters();
 });
 
 // ============================================================
@@ -5070,6 +6045,7 @@ function onBlockChange() {
   renderBcomFromFilters();
   renderBmtgFromFilters();
   renderBnvaFromFilters();
+  renderBsspFromFilters();
 }
 
 // ============================================================
