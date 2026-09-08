@@ -317,12 +317,47 @@
     display: inline-block; font-size: 0.68rem; font-weight: 600;
     padding: 0.18rem 0.5rem; border-radius: 999px; color: white;
     letter-spacing: 0.01em; margin-right: 0.3rem;
-    min-width: 96px; text-align: center; box-sizing: border-box;
+    width: 120px; text-align: center; box-sizing: border-box;
   }
   .badge-green  { background: #2d7a4a; }
   .badge-yellow { background: #d97e1f; }
   .badge-red    { background: #a83232; }
   .badge-dark   { background: #3a1f1f; }
+
+  /* SSP — Block × Competency horizontal bar chart */
+  .comp-bar-legend {
+    display: flex; flex-wrap: wrap; gap: 0.9rem; margin-bottom: 1rem;
+  }
+  .comp-bar-legend-item {
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.75rem; color: var(--ink-muted);
+  }
+  .comp-bar-legend-swatch {
+    width: 11px; height: 11px; border-radius: 2px; display: inline-block; flex-shrink: 0;
+  }
+  .comp-bar-group { margin-bottom: 1.3rem; }
+  .comp-bar-comp-label {
+    font-weight: 600; font-size: 0.85rem; color: var(--ink);
+    margin-bottom: 0.5rem; line-height: 1.35;
+  }
+  .comp-bar-row {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.28rem;
+  }
+  .comp-bar-block-name {
+    width: 110px; flex-shrink: 0; text-align: right;
+    font-size: 0.74rem; color: var(--ink-muted);
+  }
+  .comp-bar-track {
+    flex: 1; background: #f0ece2; border-radius: 3px; height: 16px;
+    overflow: hidden; position: relative;
+  }
+  .comp-bar-fill {
+    height: 100%; border-radius: 3px; transition: width 0.3s ease;
+  }
+  .comp-bar-pct {
+    width: 48px; flex-shrink: 0; text-align: right;
+    font-size: 0.74rem; color: var(--ink); font-variant-numeric: tabular-nums;
+  }
 
   /* Skill matrix (block × sub-skill) */
   .skill-matrix {
@@ -333,11 +368,11 @@
     background: var(--navy); color: white; font-weight: 600;
     text-align: center; vertical-align: middle;
     padding: 0.5rem 0.25rem;
-    font-size: 0.7rem; text-transform: none; letter-spacing: 0;
-    line-height: 1.18; border-bottom: none;
+    font-size: 0.62rem; text-transform: none; letter-spacing: 0;
+    line-height: 1.2; border-bottom: none;
     white-space: normal;
     word-break: normal; overflow-wrap: break-word; hyphens: none;
-    height: 72px;
+    height: 140px;
   }
   .skill-matrix th:first-child {
     text-align: left;
@@ -480,6 +515,7 @@
     color: var(--navy-dark); font-weight: 500;
   }
   .comp-pct.na { color: var(--ink-faint); font-weight: 400; font-size: 0.75rem; }
+  .comp-fill.ssp { background: var(--navy-dark); }
   /* District ref line in comp bars */
   .comp-track .ref-line {
     position: absolute; top: 0; bottom: 0; width: 1px; background: var(--navy-dark); opacity: 0.5;
@@ -1784,18 +1820,7 @@
               <div class="tile-grid" id="ssp-coverage"></div>
             </div>
 
-            <!-- 2. Monthly trend -->
-            <div class="kpi-subsection">
-              <h3 class="kpi-sub-h">
-                <span>Monthly trend</span>
-                <span class="sub-meta">% competencies achieved across the year, all blocks combined</span>
-              </h3>
-              <div class="line-chart-wrap">
-                <svg class="line-chart" id="ssp-trend" viewBox="0 0 700 240" preserveAspectRatio="xMidYMid meet"></svg>
-              </div>
-            </div>
-
-            <!-- 3. Block performance -->
+            <!-- 2. Block performance -->
             <div class="kpi-subsection">
               <h3 class="kpi-sub-h">
                 <span>Block performance</span>
@@ -1805,24 +1830,57 @@
                 <thead>
                   <tr>
                     <th>Block</th>
+                    <th class="num">Schools Assessed</th>
                     <th class="num">Students Assessed</th>
-                    <th class="num">Students Achieved</th>
-                    <th class="num">% Achieved</th>
+                    <th class="num">% Saksham</th>
+                    <th class="num">% Pragatisheel</th>
+                    <th class="num">% Sangharsheel</th>
+                    <th class="num">% Zero Scorers</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
               </table>
             </div>
 
+            <!-- 3. Competency-wise district average -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>Competency-wise district average</span>
+                <span class="sub-meta">vertical line = district overall</span>
+              </h3>
+              <div class="comp-bars" id="ssp-comp-bars"></div>
+            </div>
+
             <!-- 4. Block × Competency heatmap -->
             <div class="kpi-subsection">
               <h3 class="kpi-sub-h">
                 <span>Block × Competency (%)</span>
-                <span class="sub-meta" id="ssp-heatmap-meta">select 1–3 months above to view</span>
+                <span class="sub-meta" id="ssp-heatmap-meta">showing all months by default — select up to 3 to narrow</span>
               </h3>
               <div style="overflow-x:auto;">
                 <table class="kpi-table skill-matrix" id="ssp-heatmap">
                   <thead><tr id="ssp-heatmap-thead"></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="tier-legend">
+                <span class="tg"><span class="tg-sw" style="background:#c62828;"></span>≤ 25%</span>
+                <span class="tg"><span class="tg-sw" style="background:#ef6c5a;"></span>26 – 50%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f5a623;"></span>51 – 75%</span>
+                <span class="tg"><span class="tg-sw" style="background:#2d7a4a;"></span>76 – 100%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f0ece2;"></span>No data</span>
+              </div>
+            </div>
+
+            <!-- 4b. School × Competency heatmap -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>School × Competency (%)</span>
+                <span class="sub-meta" id="ssp-school-heatmap-meta">showing all months by default — select up to 3 to narrow</span>
+              </h3>
+              <div style="overflow-x:auto; max-height:520px; overflow-y:auto;">
+                <table class="kpi-table skill-matrix" id="ssp-school-heatmap">
+                  <thead><tr id="ssp-school-heatmap-thead"></tr></thead>
                   <tbody></tbody>
                 </table>
               </div>
@@ -1847,7 +1905,12 @@
                     <th style="width:32px;">#</th>
                     <th>ARP Name</th>
                     <th>Block</th>
-                    <th class="num">% Achieved</th>
+                    <th class="num">Schools Assessed</th>
+                    <th class="num">Students Assessed</th>
+                    <th class="num">% Saksham</th>
+                    <th class="num">% Pragatisheel</th>
+                    <th class="num">% Sangharsheel</th>
+                    <th class="num">% Zero Scorers</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -2466,24 +2529,55 @@
               <div class="tile-grid" id="bssp-coverage"></div>
             </div>
 
-            <!-- 2. Monthly trend -->
+            <!-- 2. Competency-wise block average -->
             <div class="kpi-subsection">
               <h3 class="kpi-sub-h">
-                <span>Monthly trend</span>
-                <span class="sub-meta">% competencies achieved across the year, this block</span>
+                <span>Competency-wise block average</span>
+                <span class="sub-meta">vertical line = block overall</span>
               </h3>
-              <div class="line-chart-wrap">
-                <svg class="line-chart" id="bssp-trend" viewBox="0 0 700 240" preserveAspectRatio="xMidYMid meet"></svg>
-              </div>
+              <div class="comp-bars" id="bssp-comp-bars"></div>
             </div>
 
             <!-- 3. Competency breakdown -->
             <div class="kpi-subsection">
               <h3 class="kpi-sub-h">
                 <span>Competency breakdown</span>
-                <span class="sub-meta">select 1–3 months above to view</span>
+                <span class="sub-meta" id="bssp-heatmap-meta">showing all months by default — select up to 3 to narrow</span>
               </h3>
-              <div id="bssp-heatmap"></div>
+              <div style="overflow-x:auto;">
+                <table class="kpi-table skill-matrix" id="bssp-heatmap">
+                  <thead><tr id="bssp-heatmap-thead"></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="tier-legend">
+                <span class="tg"><span class="tg-sw" style="background:#c62828;"></span>≤ 25%</span>
+                <span class="tg"><span class="tg-sw" style="background:#ef6c5a;"></span>26 – 50%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f5a623;"></span>51 – 75%</span>
+                <span class="tg"><span class="tg-sw" style="background:#2d7a4a;"></span>76 – 100%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f0ece2;"></span>No data</span>
+              </div>
+            </div>
+
+            <!-- 3b. School × Competency heatmap (within this block) -->
+            <div class="kpi-subsection">
+              <h3 class="kpi-sub-h">
+                <span>School × Competency (%)</span>
+                <span class="sub-meta" id="bssp-school-heatmap-meta">showing all months by default — select up to 3 to narrow</span>
+              </h3>
+              <div style="overflow-x:auto; max-height:520px; overflow-y:auto;">
+                <table class="kpi-table skill-matrix" id="bssp-school-heatmap">
+                  <thead><tr id="bssp-school-heatmap-thead"></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="tier-legend">
+                <span class="tg"><span class="tg-sw" style="background:#c62828;"></span>≤ 25%</span>
+                <span class="tg"><span class="tg-sw" style="background:#ef6c5a;"></span>26 – 50%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f5a623;"></span>51 – 75%</span>
+                <span class="tg"><span class="tg-sw" style="background:#2d7a4a;"></span>76 – 100%</span>
+                <span class="tg"><span class="tg-sw" style="background:#f0ece2;"></span>No data</span>
+              </div>
             </div>
 
             <!-- 4. Per-ARP performance (within this block) -->
@@ -2497,7 +2591,13 @@
                   <tr>
                     <th style="width:32px;">#</th>
                     <th>ARP Name</th>
-                    <th class="num">% Achieved</th>
+                    <th>Block</th>
+                    <th class="num">Schools Assessed</th>
+                    <th class="num">Students Assessed</th>
+                    <th class="num">% Saksham</th>
+                    <th class="num">% Pragatisheel</th>
+                    <th class="num">% Sangharsheel</th>
+                    <th class="num">% Zero Scorers</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -3581,11 +3681,41 @@ function renderSspFromFilters() {
 
 function renderSsp(data) {
   renderSspCoverage(data.coverage);
-  renderSspTrend(data.monthlyTrend);
-  renderSspBlockTable(data.byBlock, data.coverage.overallPct);
-  renderSspHeatmap(data.heatmap);
+  renderSspBlockTable(data.byBlock);
+  renderSspCompetencyBars(data.competencyAverages, data.competencyLabels);
+  renderSspHeatmap(data.heatmap, data.competencyLabels);
+  renderSspSchoolHeatmap(data.schoolHeatmap, data.competencyLabels);
   renderSspArpTable(data.byArp);
   populateSspArpSelect(data.arpList || data.byArp);
+}
+
+// Single-column "Competency-wise average" bars — same visual pattern as
+// the Student Learning Outcomes KPI's competency bars: one row per
+// competency, a fill proportional to its %, and a vertical reference line
+// marking the overall average across all competencies.
+function renderSspCompetencyBars(compAvg, labels) {
+  const el = document.getElementById('ssp-comp-bars');
+  if (!el) return;
+  if (!compAvg || !compAvg.competencies || !compAvg.competencies.length) {
+    el.innerHTML = '<div class="kpi-placeholder">No data yet.</div>';
+    return;
+  }
+  const overall = Math.max(0, Math.min(100, compAvg.overallPct || 0));
+  el.innerHTML = compAvg.competencies.map((code, i) => {
+    const label = (labels && labels[code]) ? labels[code] : code;
+    const v = compAvg.values[i];
+    const w = v == null ? 0 : Math.max(0, Math.min(100, v));
+    return `
+      <div class="comp-row">
+        <div class="comp-label" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+        <div class="comp-track">
+          <span class="comp-fill ssp" style="width:${w}%"></span>
+          <span class="ref-line" style="left:${overall}%"></span>
+        </div>
+        <div class="comp-pct">${v == null ? '—' : v + '%'}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ---- Student Lookup (Saksham / Pragatisheel / Sangharsheel / Zero Scorer) ----
@@ -3738,6 +3868,28 @@ function exportSspStudentsExcel() {
   XLSX.writeFile(wb, sspExportFilename('xlsx'));
 }
 
+// Colors the Category and Zero Scorer columns in the exported PDF to match
+// the badge colors shown on screen: Sangharsheel=red, Pragatisheel=yellow,
+// Saksham=green, Zero Scorer=black.
+function sspPdfCellColor(data) {
+  if (data.section !== 'body') return;
+  const col = data.column.index;
+  const val = data.cell.raw;
+  const categoryColors = {
+    'Sangharsheel': [168, 50, 50],
+    'Pragatisheel': [217, 158, 31],
+    'Saksham': [45, 122, 74]
+  };
+  if (col === 4 && categoryColors[val]) {
+    data.cell.styles.fillColor = categoryColors[val];
+    data.cell.styles.textColor = [255, 255, 255];
+  }
+  if (col === 5 && val === 'YES') {
+    data.cell.styles.fillColor = [20, 20, 20];
+    data.cell.styles.textColor = [255, 255, 255];
+  }
+}
+
 function exportSspStudentsPdf() {
   if (!lastSspStudents.length || typeof window.jspdf === 'undefined') return;
   const { jsPDF } = window.jspdf;
@@ -3754,7 +3906,8 @@ function exportSspStudentsPdf() {
     head: [['School', 'Student', 'Achieved', 'Percent', 'Category', 'Zero Scorer']],
     body: rows.map(r => [r.School, r.Student, r.Achieved, r.Percent, r.Category, r['Zero Scorer']]),
     styles: { fontSize: 8 },
-    headStyles: { fillColor: [26, 43, 74] }
+    headStyles: { fillColor: [26, 43, 74] },
+    didParseCell: sspPdfCellColor
   });
 
   doc.save(sspExportFilename('pdf'));
@@ -3770,18 +3923,14 @@ function renderSspCoverage(c) {
       <div class="tile-value">${fmtIN.format(c.totalArps)}</div>
     </div>
     <div class="tile">
-      <div class="tile-label">Competency assessments</div>
-      <div class="tile-value">${fmtIN.format(c.assessed)}</div>
-      <div class="tile-sub">student × competency checks, selected month(s)</div>
+      <div class="tile-label">Students assessed</div>
+      <div class="tile-value">${fmtIN.format(c.studentsAssessed || 0)}</div>
+      <div class="tile-sub">distinct students, selected month(s)</div>
     </div>
     <div class="tile">
-      <div class="tile-label">Achieved</div>
-      <div class="tile-value">${fmtIN.format(c.achieved)}</div>
-    </div>
-    <div class="tile">
-      <div class="tile-label">% Achieved</div>
-      <div class="tile-value">${c.overallPct}%</div>
-      <div class="tile-sub">of assessed</div>
+      <div class="tile-label">% Saksham</div>
+      <div class="tile-value">${c.sakshamPct || 0}%</div>
+      <div class="tile-sub">students scoring ≥ 80%</div>
     </div>
   `;
 }
@@ -3854,66 +4003,147 @@ function renderSspTrend(trend) {
   svg.innerHTML = parts.join('');
 }
 
-function renderSspBlockTable(byBlock, districtPct) {
+function renderSspBlockTable(byBlock) {
   const tbody = document.querySelector('#ssp-block-table tbody');
-  const deltaSpan = (val) => {
-    const d = Math.round((val - districtPct) * 10) / 10;
-    if (d === 0) return ' <span class="delta flat">±0</span>';
-    return ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>`;
-  };
-  tbody.innerHTML = byBlock.map(b => `
+  if (!byBlock || !byBlock.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="kpi-placeholder">No data yet.</td></tr>';
+    return;
+  }
+  const sorted = byBlock.slice().sort((a, b) => (b.sakshamPct ?? -1) - (a.sakshamPct ?? -1));
+  tbody.innerHTML = sorted.map(b => `
     <tr>
       <td>${escapeHtml(b.block)}</td>
-      <td class="num">${fmtIN.format(b.assessed)}</td>
-      <td class="num">${fmtIN.format(b.achieved)}</td>
-      <td class="num">${b.pct}%${deltaSpan(b.pct)}</td>
+      <td class="num">${fmtIN.format(b.schoolsAssessed || 0)}</td>
+      <td class="num">${fmtIN.format(b.studentsAssessed || 0)}</td>
+      <td class="num">${b.sakshamPct || 0}%</td>
+      <td class="num">${b.pragatisheelPct || 0}%</td>
+      <td class="num">${b.sangharsheelPct || 0}%</td>
+      <td class="num">${b.zeroScorerPct || 0}%</td>
     </tr>
   `).join('');
 }
 
-function renderSspHeatmap(heatmap) {
-  const thead = document.getElementById('ssp-heatmap-thead');
-  const tbody = document.querySelector('#ssp-heatmap tbody');
-  const meta = document.getElementById('ssp-heatmap-meta');
+// A fixed color per block, cycled if there are ever more than 6.
+const SSP_BLOCK_COLORS = ['#2d5f8a', '#2d7a4a', '#d97e1f', '#a83232', '#6b4fa0', '#c98a2b'];
 
-  if (!heatmap || heatmap.tooManyMonths) {
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    meta.textContent = 'select 1–3 months above to view the competency breakdown';
+// District-level "Block × Competency" as a horizontal bar chart: one group
+// per competency, with one colored bar per block inside each group — makes
+// it easy to compare blocks at a glance instead of scanning a number grid.
+function renderSspBlockCompetencyChart(heatmap, labels) {
+  const wrap = document.getElementById('ssp-block-chart');
+  const meta = document.getElementById('ssp-heatmap-meta');
+  if (!wrap) return;
+
+  if (!heatmap || !heatmap.blocks || !heatmap.blocks.length) {
+    wrap.innerHTML = '<div class="kpi-placeholder">No data yet.</div>';
+    if (meta) meta.textContent = 'no data yet';
     return;
   }
-  meta.textContent = 'blocks × competencies for the selected month(s)';
+  if (meta) meta.textContent = 'showing all months by default — select up to 3 to narrow';
 
-  thead.innerHTML = '<th>Block</th>' + heatmap.competencies.map(c => `<th>${escapeHtml(c)}</th>`).join('');
-  tbody.innerHTML = heatmap.blocks.map((block, bi) => `
+  const blocks = heatmap.blocks;
+  const competencies = heatmap.competencies;
+
+  const legendHtml = blocks.map((b, bi) => `
+    <span class="comp-bar-legend-item">
+      <span class="comp-bar-legend-swatch" style="background:${SSP_BLOCK_COLORS[bi % SSP_BLOCK_COLORS.length]};"></span>
+      ${escapeHtml(b)}
+    </span>
+  `).join('');
+
+  const groupsHtml = competencies.map((code, ci) => {
+    const label = (labels && labels[code]) ? labels[code] : code;
+    const rowsHtml = blocks.map((b, bi) => {
+      const v = heatmap.values[bi][ci];
+      const barWidth = v == null ? 0 : v;
+      const color = SSP_BLOCK_COLORS[bi % SSP_BLOCK_COLORS.length];
+      return `
+        <div class="comp-bar-row">
+          <span class="comp-bar-block-name">${escapeHtml(b)}</span>
+          <div class="comp-bar-track">
+            <div class="comp-bar-fill" style="width:${barWidth}%; background:${color};"></div>
+          </div>
+          <span class="comp-bar-pct">${v == null ? '—' : v + '%'}</span>
+        </div>
+      `;
+    }).join('');
+    return `<div class="comp-bar-group"><div class="comp-bar-comp-label">${escapeHtml(label)}</div>${rowsHtml}</div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="comp-bar-legend">${legendHtml}</div>` + groupsHtml;
+}
+
+function renderSspHeatmap(heatmap, labels) {
+  renderCompetencyHeatmapGeneric({
+    theadId: 'ssp-heatmap-thead', tbodyId: 'ssp-heatmap', metaId: 'ssp-heatmap-meta',
+    rowLabel: 'Block', rows: heatmap && heatmap.blocks, heatmap, labels
+  });
+}
+
+// Shared renderer for any "row × competency" heatmap table (block-level or
+// school-level, district or block-scoped). `rows` is either heatmap.blocks
+// (array of block names) or heatmap.schools (array of {school, block}).
+// `labels` maps competency code -> real competency text (e.g. Q1 -> "वर्ण/
+// अक्षर/मात्राओं की पहचान करना"); falls back to the bare code if missing.
+function renderCompetencyHeatmapGeneric(opts) {
+  const { theadId, tbodyId, metaId, rowLabel, rows, heatmap, showBlockSuffix, labels } = opts;
+  const thead = document.getElementById(theadId);
+  const tbody = document.querySelector('#' + tbodyId + ' tbody');
+  const meta = document.getElementById(metaId);
+  if (!thead || !tbody) return;
+
+  if (!heatmap || heatmap.tooManyMonths || !rows) {
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+    if (meta) meta.textContent = 'no data yet';
+    return;
+  }
+  if (meta) meta.textContent = `${rowLabel.toLowerCase()}s × competencies for the selected month(s)`;
+
+  thead.innerHTML = `<th>${rowLabel}</th>` + heatmap.competencies.map(c => {
+    const label = (labels && labels[c]) ? labels[c] : c;
+    return `<th title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
+  }).join('');
+  tbody.innerHTML = rows.map((row, ri) => {
+    const label = typeof row === 'string' ? row
+      : (showBlockSuffix === false ? row.school : `${row.school} (${row.block})`);
+    return `
     <tr>
-      <td>${escapeHtml(block)}</td>
-      ${heatmap.values[bi].map(v => {
-        const pct = v == null ? null : v;
-        const tier = tierFor(pct);
-        return `<td class="${tier}">${pct == null ? '—' : pct + '%'}</td>`;
+      <td>${escapeHtml(label)}</td>
+      ${heatmap.values[ri].map(v => {
+        const tier = tierFor(v);
+        return `<td class="${tier}">${v == null ? '—' : v + '%'}</td>`;
       }).join('')}
     </tr>
-  `).join('');
+  `;
+  }).join('');
+}
+
+function renderSspSchoolHeatmap(schoolHeatmap, labels) {
+  renderCompetencyHeatmapGeneric({
+    theadId: 'ssp-school-heatmap-thead', tbodyId: 'ssp-school-heatmap', metaId: 'ssp-school-heatmap-meta',
+    rowLabel: 'School', rows: schoolHeatmap && schoolHeatmap.schools, heatmap: schoolHeatmap, labels
+  });
 }
 
 function renderSspArpTable(byArp) {
   const tbody = document.querySelector('#ssp-arp-table tbody');
-  const validPct = byArp.filter(a => a.pct != null).map(a => a.pct);
-  const districtAvg = validPct.length ? Math.round((validPct.reduce((s, v) => s + v, 0) / validPct.length) * 10) / 10 : 0;
-  const deltaSpan = (val) => {
-    if (val == null) return '';
-    const d = Math.round((val - districtAvg) * 10) / 10;
-    if (d === 0) return ' <span class="delta flat">±0</span>';
-    return ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>`;
-  };
-  const sorted = byArp.slice().sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
+  if (!byArp || !byArp.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="kpi-placeholder">No data yet.</td></tr>';
+    return;
+  }
+  const sorted = byArp.slice().sort((a, b) => (b.sakshamPct ?? -1) - (a.sakshamPct ?? -1));
   tbody.innerHTML = sorted.map((a, i) => `
     <tr>
       <td>${i + 1}</td>
       <td>${escapeHtml(a.arp)}</td>
       <td>${escapeHtml(a.block)}</td>
-      <td class="num">${a.pct == null ? '—' : a.pct + '%'}${deltaSpan(a.pct)}</td>
+      <td class="num">${fmtIN.format(a.schoolsAssessed || 0)}</td>
+      <td class="num">${fmtIN.format(a.studentsAssessed || 0)}</td>
+      <td class="num">${a.sakshamPct || 0}%</td>
+      <td class="num">${a.pragatisheelPct || 0}%</td>
+      <td class="num">${a.sangharsheelPct || 0}%</td>
+      <td class="num">${a.zeroScorerPct || 0}%</td>
     </tr>
   `).join('');
 }
@@ -3961,8 +4191,9 @@ function renderBsspFromFilters() {
       }
       buildMonthDropdown('bssp-month-menu', 'onBsspFilterChange', SSP_MONTHS, effM);
       renderBsspCoverage(data.coverage);
-      renderBsspTrend(data.monthlyTrend);
-      renderBsspHeatmap(data.heatmap);
+      renderBsspCompetencyBars(data.competencyAverages, data.competencyLabels);
+      renderBsspHeatmap(data.heatmap, data.competencyLabels);
+      renderBsspSchoolHeatmap(data.schoolHeatmap, data.competencyLabels);
       renderBsspArpTable(data.byArp);
       populateBsspArpSelect(data.arpList || data.byArp);
     })
@@ -3976,62 +4207,70 @@ function renderBsspCoverage(c) {
   if (!c) return;
   bSetHtml('bssp-coverage', `
     <div class="tile"><div class="tile-label">Total ARPs</div><div class="tile-value">${fmtIN.format(c.totalArps || 0)}</div></div>
-    <div class="tile"><div class="tile-label">Competency assessments</div><div class="tile-value">${fmtIN.format(c.assessed || 0)}</div><div class="tile-sub">student × competency checks, selected month(s)</div></div>
-    <div class="tile"><div class="tile-label">Achieved</div><div class="tile-value">${fmtIN.format(c.achieved || 0)}</div></div>
-    <div class="tile"><div class="tile-label">% Achieved</div><div class="tile-value">${c.overallPct || 0}%</div><div class="tile-sub">of assessed</div></div>
+    <div class="tile"><div class="tile-label">Students assessed</div><div class="tile-value">${fmtIN.format(c.studentsAssessed || 0)}</div><div class="tile-sub">distinct students, selected month(s)</div></div>
+    <div class="tile"><div class="tile-label">% Saksham</div><div class="tile-value">${c.sakshamPct || 0}%</div><div class="tile-sub">students scoring ≥ 80%</div></div>
   `);
 }
 
-// Reuse the same SVG line-chart layout as the district SSP trend, pointed
-// at the block SVG element.
-function renderBsspTrend(trend) {
-  if (!trend) return;
-  const blockSvg = document.getElementById('bssp-trend');
-  if (!blockSvg) return;
-  const districtSvg = document.getElementById('ssp-trend');
-  const originalId = districtSvg ? districtSvg.id : null;
-  if (districtSvg) districtSvg.removeAttribute('id');
-  blockSvg.id = 'ssp-trend';
-  renderSspTrend(trend);
-  blockSvg.removeAttribute('id');
-  blockSvg.id = 'bssp-trend';
-  if (districtSvg && originalId) districtSvg.id = originalId;
+function renderBsspCompetencyBars(compAvg, labels) {
+  const el = document.getElementById('bssp-comp-bars');
+  if (!el) return;
+  if (!compAvg || !compAvg.competencies || !compAvg.competencies.length) {
+    el.innerHTML = '<div class="kpi-placeholder">No data yet.</div>';
+    return;
+  }
+  const overall = Math.max(0, Math.min(100, compAvg.overallPct || 0));
+  el.innerHTML = compAvg.competencies.map((code, i) => {
+    const label = (labels && labels[code]) ? labels[code] : code;
+    const v = compAvg.values[i];
+    const w = v == null ? 0 : Math.max(0, Math.min(100, v));
+    return `
+      <div class="comp-row">
+        <div class="comp-label" title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+        <div class="comp-track">
+          <span class="comp-fill ssp" style="width:${w}%"></span>
+          <span class="ref-line" style="left:${overall}%"></span>
+        </div>
+        <div class="comp-pct">${v == null ? '—' : v + '%'}</div>
+      </div>
+    `;
+  }).join('');
 }
 
-function renderBsspHeatmap(heatmap) {
-  const wrap = document.getElementById('bssp-heatmap');
-  if (!wrap) return;
-  const districtWrap = document.getElementById('ssp-heatmap');
-  const originalId = districtWrap ? districtWrap.id : null;
-  if (districtWrap) districtWrap.removeAttribute('id');
-  wrap.id = 'ssp-heatmap';
-  renderSspHeatmap(heatmap);
-  wrap.removeAttribute('id');
-  wrap.id = 'bssp-heatmap';
-  if (districtWrap && originalId) districtWrap.id = originalId;
+function renderBsspHeatmap(heatmap, labels) {
+  renderCompetencyHeatmapGeneric({
+    theadId: 'bssp-heatmap-thead', tbodyId: 'bssp-heatmap', metaId: 'bssp-heatmap-meta',
+    rowLabel: 'Block', rows: heatmap && heatmap.blocks, heatmap, labels
+  });
+}
+
+function renderBsspSchoolHeatmap(schoolHeatmap, labels) {
+  renderCompetencyHeatmapGeneric({
+    theadId: 'bssp-school-heatmap-thead', tbodyId: 'bssp-school-heatmap', metaId: 'bssp-school-heatmap-meta',
+    rowLabel: 'School', rows: schoolHeatmap && schoolHeatmap.schools, heatmap: schoolHeatmap,
+    showBlockSuffix: false, labels
+  });
 }
 
 function renderBsspArpTable(byArp) {
   const tbody = document.querySelector('#bssp-arp-table tbody');
   if (!tbody) return;
   if (!byArp || !byArp.length) {
-    tbody.innerHTML = '<tr><td colspan="3" class="kpi-placeholder">No ARPs with data in this block yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="kpi-placeholder">No ARPs with data in this block yet.</td></tr>';
     return;
   }
-  const validPct = byArp.filter(a => a.pct != null).map(a => a.pct);
-  const blockAvg = validPct.length ? Math.round((validPct.reduce((s, v) => s + v, 0) / validPct.length) * 10) / 10 : 0;
-  const deltaSpan = (val) => {
-    if (val == null) return '';
-    const d = Math.round((val - blockAvg) * 10) / 10;
-    if (d === 0) return ' <span class="delta flat">±0</span>';
-    return ` <span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>`;
-  };
-  const sorted = byArp.slice().sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
+  const sorted = byArp.slice().sort((a, b) => (b.sakshamPct ?? -1) - (a.sakshamPct ?? -1));
   tbody.innerHTML = sorted.map((a, i) => `
     <tr>
       <td>${i + 1}</td>
       <td>${escapeHtml(a.arp)}</td>
-      <td class="num">${a.pct == null ? '—' : a.pct + '%'}${deltaSpan(a.pct)}</td>
+      <td>${escapeHtml(a.block)}</td>
+      <td class="num">${fmtIN.format(a.schoolsAssessed || 0)}</td>
+      <td class="num">${fmtIN.format(a.studentsAssessed || 0)}</td>
+      <td class="num">${a.sakshamPct || 0}%</td>
+      <td class="num">${a.pragatisheelPct || 0}%</td>
+      <td class="num">${a.sangharsheelPct || 0}%</td>
+      <td class="num">${a.zeroScorerPct || 0}%</td>
     </tr>
   `).join('');
 }
@@ -4197,7 +4436,8 @@ function exportBsspStudentsPdf() {
     head: [['School', 'Student', 'Achieved', 'Percent', 'Category', 'Zero Scorer']],
     body: rows.map(r => [r.School, r.Student, r.Achieved, r.Percent, r.Category, r['Zero Scorer']]),
     styles: { fontSize: 8 },
-    headStyles: { fillColor: [26, 43, 74] }
+    headStyles: { fillColor: [26, 43, 74] },
+    didParseCell: sspPdfCellColor
   });
 
   doc.save(bsspExportFilename('pdf'));
